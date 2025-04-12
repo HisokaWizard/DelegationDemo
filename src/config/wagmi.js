@@ -1,18 +1,27 @@
-import { createConfig, configureChains, mainnet } from 'wagmi';
-import { publicProvider } from 'wagmi/providers/public';
-import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
-import { WalletConnectConnector } from 'wagmi/connectors/walletConnect';
-
-const { chains, publicClient } = configureChains([mainnet], [publicProvider()]);
+import { createConfig, http } from 'wagmi';
+import { mainnet } from 'wagmi/chains';
+import { walletConnect, injected } from 'wagmi/connectors';
 
 export const wagmiConfig = createConfig({
-  autoConnect: true,
+  chains: [mainnet],
   connectors: [
-    new MetaMaskConnector({ chains }),
-    new WalletConnectConnector({
-      chains,
-      options: { projectId: import.meta.env.VITE_WC_PROJECT_ID },
+    injected({
+      target: 'metaMask',
+    }),
+    injected({
+      target() {
+        return {
+          id: 'rabby',
+          name: 'Rabby Wallet',
+          provider: window.ethereum,
+        };
+      },
+    }),
+    walletConnect({
+      projectId: import.meta.env.VITE_WC_PROJECT_ID,
     }),
   ],
-  publicClient,
+  transports: {
+    [mainnet.id]: http(),
+  },
 });
